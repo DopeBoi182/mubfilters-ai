@@ -19,7 +19,7 @@ async function startBots() {
     console.log('✓ Telegram bot is running...\n');
     
     // Start Web Server for WhatsApp QR Code
-    await startWebServer(3000);
+    await startWebServer(8080);
     
     // Start WhatsApp bot with timeout
     console.log('Initializing WhatsApp bot...');

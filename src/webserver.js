@@ -232,7 +232,7 @@ app.get('/qr-image', async (req, res) => {
     }
 });
 
-export function startWebServer(port = 3000) {
+export function startWebServer(port = 8080) {
     return new Promise((resolve) => {
         const server = app.listen(port, () => {
             console.log('\n==============================================');
