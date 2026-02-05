@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.git
+.gitignore
+*.md
+tokens
+auth_info_baileys
+downloads
+*.log
+.DS_Store
+Thumbs.db
+
