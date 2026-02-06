@@ -6,17 +6,33 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dopeboi:umLDa5vgvR
 let isConnected = false;
 
 export async function connectDatabase() {
-    if (isConnected) {
+    if (isConnected && mongoose.connection.readyState === 1) {
         console.log('✓ MongoDB already connected');
         return;
     }
 
     try {
-        await mongoose.connect(MONGODB_URI);
-        isConnected = true;
-        console.log('✓ MongoDB connected successfully');
+        const uriToLog = MONGODB_URI.replace(/\/\/[^:]+:[^@]+@/, '//***:***@'); // Hide password in logs
+        console.log(`🔄 Connecting to MongoDB: ${uriToLog}`);
+        
+        await mongoose.connect(MONGODB_URI, {
+            serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+        });
+        
+        // Wait for connection to be ready
+        if (mongoose.connection.readyState === 1) {
+            isConnected = true;
+            console.log('✓ MongoDB connected successfully');
+            console.log(`   Database: ${mongoose.connection.db.databaseName}`);
+            console.log(`   Connection state: ${mongoose.connection.readyState} (1 = connected)`);
+        } else {
+            throw new Error('Connection established but state is not ready');
+        }
     } catch (error) {
         console.error('❌ MongoDB connection error:', error);
+        console.error('   Error message:', error.message);
+        console.error('   Connection string format check: Make sure MONGODB_URI includes the database name');
+        isConnected = false;
         throw error;
     }
 }
@@ -34,14 +50,23 @@ export async function disconnectDatabase() {
 }
 
 // Handle connection events
+mongoose.connection.on('connected', () => {
+    console.log('✓ MongoDB connection event: connected');
+    isConnected = true;
+});
+
 mongoose.connection.on('error', (err) => {
-    console.error('MongoDB connection error:', err);
+    console.error('❌ MongoDB connection error event:', err);
     isConnected = false;
 });
 
 mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB disconnected');
+    console.log('⚠️ MongoDB disconnected event');
     isConnected = false;
+});
+
+mongoose.connection.on('connecting', () => {
+    console.log('🔄 MongoDB connecting...');
 });
 
 export default mongoose;

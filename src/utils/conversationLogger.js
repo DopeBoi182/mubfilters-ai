@@ -16,18 +16,27 @@ import mongoose from 'mongoose';
  * @param {String} conversationData.language - Detected language (en or id)
  */
 export async function saveConversation(conversationData) {
-    // Only save if MongoDB is connected
-    if (mongoose.connection.readyState !== 1) {
-        console.log('⚠️ MongoDB not connected, skipping conversation save');
+    // Check MongoDB connection state
+    const connectionState = mongoose.connection.readyState;
+    // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    
+    if (connectionState !== 1) {
+        console.log(`⚠️ MongoDB not connected (state: ${connectionState}), skipping conversation save`);
+        console.log(`   Connection state: ${connectionState === 0 ? 'disconnected' : connectionState === 2 ? 'connecting' : 'disconnecting'}`);
         return;
     }
 
     try {
+        console.log(`📝 Attempting to save conversation for chatId: ${conversationData.chatId}`);
         const conversation = new Conversation(conversationData);
-        await conversation.save();
-        console.log(`✓ Conversation saved for chatId: ${conversationData.chatId}`);
+        const saved = await conversation.save();
+        console.log(`✓ Conversation saved successfully! ID: ${saved._id}, chatId: ${conversationData.chatId}`);
     } catch (error) {
         console.error('❌ Error saving conversation:', error);
+        console.error('   Error details:', error.message);
+        if (error.errors) {
+            console.error('   Validation errors:', error.errors);
+        }
         // Don't throw - we don't want to break the bot if logging fails
     }
 }
