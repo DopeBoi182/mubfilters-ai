@@ -2,6 +2,7 @@
 import telegramBot from './bot.js';
 import telegramHandler from './handlers/command.js';
 import { connectDatabase } from './database.js';
+import { startServer } from './server.js';
 
 telegramHandler(telegramBot);
 
@@ -16,6 +17,13 @@ async function startBot() {
     } catch (error) {
         console.error('⚠️ Failed to connect to MongoDB. Bot will continue without logging conversations.');
         console.error('Error:', error.message);
+    }
+    
+    // Start Web Server on PORT 8080
+    try {
+        await startServer();
+    } catch (error) {
+        console.error('⚠️ Failed to start web server:', error.message);
     }
     
     // Start Telegram bot
