@@ -15,9 +15,10 @@ async function sendFormattedMessage(bot, chatId, text) {
 
 // Helper function to detect language from text
 function detectLanguage(text) {
-    // Enhanced detection: check for Indonesian words/patterns
-    const indonesianPatterns = /\b(apa|bagaimana|berapa|dimana|di mana|kapan|siapa|mengapa|kenapa|saya|kamu|anda|dengan|untuk|dari|yang|ini|itu|ada|tidak|bisa|mau|ingin|terima|kasih|tolong|mohon|produk|filter|harga|informasi|tentang|perusahaan|pabrik)\b/i;
-    return indonesianPatterns.test(text) ? 'id' : 'en';
+    // Enhanced detection: check for English words/patterns
+    // Default to Indonesian, only switch to English if English patterns are detected
+    const englishPatterns = /\b(what|how|when|where|who|why|can|could|would|should|will|is|are|was|were|the|a|an|and|or|but|if|then|this|that|these|those|hello|hi|hey|please|thank|thanks|product|price|information|about|company|factory)\b/i;
+    return englishPatterns.test(text) ? 'en' : 'id';
 }
 
 export default (bot) => {
@@ -71,8 +72,8 @@ export default (bot) => {
         const photo = msg.photo[msg.photo.length - 1];
         const fileId = photo.file_id;
 
-        // Get user's language preference
-        let userLang = userLanguages.get(msg.chat.id) || 'en';
+        // Get user's language preference (default to Indonesian)
+        let userLang = userLanguages.get(msg.chat.id) || 'id';
 
         try {
             const filePath = await bot.downloadFile(fileId, './downloads');

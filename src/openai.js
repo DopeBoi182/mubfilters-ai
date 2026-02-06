@@ -15,7 +15,7 @@ function imageToBase64(path) {
 
 
 // It's going to be the text-based response from the AI
-async function generateResponse(input, language = 'en') {
+async function generateResponse(input, language = 'id') {
     const languageInstruction = language === 'id' 
         ? 'IMPORTANT: Respond in Bahasa Indonesia (Indonesian language).' 
         : 'IMPORTANT: Respond in English.';
@@ -119,7 +119,7 @@ When answering questions:
 }
 
 // It's going to be the image-based response from the AI
-async function generateImageResponse(imagePath, language = 'en') {
+async function generateImageResponse(imagePath, language = 'id') {
     const imageBase64 = imageToBase64(imagePath);
     const languageInstruction = language === 'id' 
         ? 'IMPORTANT: Respond in Bahasa Indonesia (Indonesian language).' 

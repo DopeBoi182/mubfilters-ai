@@ -43,7 +43,7 @@ const conversationSchema = new mongoose.Schema({
     language: {
         type: String,
         enum: ['en', 'id'],
-        default: 'en',
+        default: 'id',
     },
     timestamp: {
         type: Date,
