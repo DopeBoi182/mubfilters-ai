@@ -4,6 +4,7 @@ import mongoose from './database.js';
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+console.log("check")
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
