@@ -6,6 +6,7 @@ import { connectDatabase } from './database.js';
 telegramHandler(telegramBot);
 
 async function startBot() {
+    console.log();
     console.log('==============================================');
     console.log('Starting MubAI - Telegram Bot');
     console.log('==============================================\n');
