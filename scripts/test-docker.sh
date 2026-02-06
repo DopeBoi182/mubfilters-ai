@@ -54,3 +54,4 @@ echo ""
 echo -e "${YELLOW}📋 Following logs (Ctrl+C to exit)...${NC}"
 docker logs -f mubai-bot-test
 
+

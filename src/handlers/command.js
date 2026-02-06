@@ -1,4 +1,5 @@
 import { generateResponse, generateImageResponse } from '../openai.js';
+import { saveConversation } from '../utils/conversationLogger.js';
 
 // Store user language preferences
 const userLanguages = new Map();
@@ -30,7 +31,7 @@ export default (bot) => {
     });
 
     // Handle all other messages -> I can do all the stuff in here, everytime I send a text it will be here
-    bot.on('message', (msg) => {
+    bot.on('message', async (msg) => {
         if (!msg.text || msg.text.startsWith('/')) return;
 
         console.log(`consuming text from user: ${msg.text}`);
@@ -40,9 +41,26 @@ export default (bot) => {
         userLanguages.set(msg.chat.id, userLang);
         console.log(`Detected language: ${userLang}`);
         
-        generateResponse(msg.text, userLang).then(response => {   
-            sendFormattedMessage(bot, msg.chat.id, response);
-        });
+        try {
+            const response = await generateResponse(msg.text, userLang);
+            await sendFormattedMessage(bot, msg.chat.id, response);
+            
+            // Save conversation to MongoDB
+            await saveConversation({
+                chatId: msg.chat.id,
+                chatType: msg.chat.type,
+                userId: msg.from.id,
+                username: msg.from.username || null,
+                firstName: msg.from.first_name || null,
+                lastName: msg.from.last_name || null,
+                question: msg.text,
+                answer: response,
+                messageType: 'text',
+                language: userLang,
+            });
+        } catch (error) {
+            console.error('Error processing message:', error);
+        }
     });
 
     // Handle the image from the user
@@ -56,9 +74,26 @@ export default (bot) => {
         // Get user's language preference
         let userLang = userLanguages.get(msg.chat.id) || 'en';
 
-        const filePath = await bot.downloadFile(fileId, './downloads');
-        generateImageResponse(filePath, userLang).then(response => {
-            sendFormattedMessage(bot, msg.chat.id, response);
-        }); 
+        try {
+            const filePath = await bot.downloadFile(fileId, './downloads');
+            const response = await generateImageResponse(filePath, userLang);
+            await sendFormattedMessage(bot, msg.chat.id, response);
+            
+            // Save conversation to MongoDB
+            await saveConversation({
+                chatId: msg.chat.id,
+                chatType: msg.chat.type,
+                userId: msg.from.id,
+                username: msg.from.username || null,
+                firstName: msg.from.first_name || null,
+                lastName: msg.from.last_name || null,
+                question: '[Image]', // Since there's no text with image
+                answer: response,
+                messageType: 'image',
+                language: userLang,
+            });
+        } catch (error) {
+            console.error('Error processing image:', error);
+        }
     });
 };

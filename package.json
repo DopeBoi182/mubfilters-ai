@@ -13,11 +13,9 @@
   "description": "MubAI - Intelligent assistant bot for PT Mulia Usaha Bersama (MUB Filters)",
   "dependencies": {
     "dotenv": "^17.2.3",
-    "express": "^4.18.2",
     "fs": "^0.0.1-security",
+    "mongoose": "^8.0.3",
     "node-telegram-bot-api": "^0.67.0",
-    "openai": "^6.15.0",
-    "qrcode": "^1.5.3",
-    "venom-bot": "^5.0.17"
+    "openai": "^6.15.0"
   }
 }
