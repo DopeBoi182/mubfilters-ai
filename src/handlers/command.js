@@ -37,6 +37,22 @@ export default (bot) => {
 
         console.log(`consuming text from user: ${msg.text}`);
         
+        // Start typing indicator
+        const chatId = msg.chat.id;
+        let typingInterval;
+        
+        // Send typing action immediately
+        bot.sendChatAction(chatId, 'typing').catch(err => 
+            console.error('Failed to send typing action:', err)
+        );
+        
+        // Keep typing indicator active (Telegram typing expires after ~5 seconds)
+        typingInterval = setInterval(() => {
+            bot.sendChatAction(chatId, 'typing').catch(err => 
+                console.error('Failed to send typing action:', err)
+            );
+        }, 4000); // Send every 4 seconds
+        
         // Auto-detect language from current message
         const userLang = detectLanguage(msg.text);
         userLanguages.set(msg.chat.id, userLang);
@@ -44,6 +60,12 @@ export default (bot) => {
         
         try {
             const response = await generateResponse(msg.text, userLang);
+            
+            // Stop typing indicator before sending response
+            if (typingInterval) {
+                clearInterval(typingInterval);
+            }
+            
             await sendFormattedMessage(bot, msg.chat.id, response);
             
             // Save conversation to MongoDB
@@ -60,6 +82,10 @@ export default (bot) => {
                 language: userLang,
             });
         } catch (error) {
+            // Stop typing indicator on error
+            if (typingInterval) {
+                clearInterval(typingInterval);
+            }
             console.error('Error processing message:', error);
         }
     });
@@ -69,6 +95,23 @@ export default (bot) => {
         if(!msg || !msg.photo || msg.photo.length === 0) return;
 
         console.log("consuming image from user");
+        
+        // Start typing indicator
+        const chatId = msg.chat.id;
+        let typingInterval;
+        
+        // Send typing action immediately
+        bot.sendChatAction(chatId, 'typing').catch(err => 
+            console.error('Failed to send typing action:', err)
+        );
+        
+        // Keep typing indicator active (Telegram typing expires after ~5 seconds)
+        typingInterval = setInterval(() => {
+            bot.sendChatAction(chatId, 'typing').catch(err => 
+                console.error('Failed to send typing action:', err)
+            );
+        }, 4000); // Send every 4 seconds
+        
         const photo = msg.photo[msg.photo.length - 1];
         const fileId = photo.file_id;
 
@@ -78,6 +121,12 @@ export default (bot) => {
         try {
             const filePath = await bot.downloadFile(fileId, './downloads');
             const response = await generateImageResponse(filePath, userLang);
+            
+            // Stop typing indicator before sending response
+            if (typingInterval) {
+                clearInterval(typingInterval);
+            }
+            
             await sendFormattedMessage(bot, msg.chat.id, response);
             
             // Save conversation to MongoDB
@@ -94,6 +143,10 @@ export default (bot) => {
                 language: userLang,
             });
         } catch (error) {
+            // Stop typing indicator on error
+            if (typingInterval) {
+                clearInterval(typingInterval);
+            }
             console.error('Error processing image:', error);
         }
     });
