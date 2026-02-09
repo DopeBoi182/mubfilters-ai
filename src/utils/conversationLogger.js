@@ -1,5 +1,6 @@
 import Conversation from '../models/Conversation.js';
 import mongoose from 'mongoose';
+import { connectDatabase } from '../database.js';
 
 /**
  * Save a conversation to MongoDB
@@ -17,8 +18,21 @@ import mongoose from 'mongoose';
  */
 export async function saveConversation(conversationData) {
     // Check MongoDB connection state
-    const connectionState = mongoose.connection.readyState;
+    let connectionState = mongoose.connection.readyState;
     // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+    
+    // If disconnected, attempt to reconnect once
+    if (connectionState === 0) {
+        console.log('⚠️ MongoDB disconnected, attempting to reconnect...');
+        try {
+            await connectDatabase();
+            connectionState = mongoose.connection.readyState;
+        } catch (reconnectError) {
+            console.log(`⚠️ MongoDB reconnection failed (state: ${connectionState}), skipping conversation save`);
+            console.log(`   Connection state: ${connectionState === 0 ? 'disconnected' : connectionState === 2 ? 'connecting' : 'disconnecting'}`);
+            return;
+        }
+    }
     
     if (connectionState !== 1) {
         console.log(`⚠️ MongoDB not connected (state: ${connectionState}), skipping conversation save`);
@@ -34,6 +48,15 @@ export async function saveConversation(conversationData) {
     } catch (error) {
         console.error('❌ Error saving conversation:', error);
         console.error('   Error details:', error.message);
+        
+        // If it's a connection error, mark as disconnected
+        if (error.name === 'MongoServerSelectionError' || 
+            error.name === 'MongoNetworkError' ||
+            error.message.includes('connection') && error.message.includes('closed')) {
+            console.error('   Connection error detected - connection may have been lost');
+            // The connection event handlers will attempt reconnection
+        }
+        
         if (error.errors) {
             console.error('   Validation errors:', error.errors);
         }
